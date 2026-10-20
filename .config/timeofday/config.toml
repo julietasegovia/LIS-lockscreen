@@ -1,0 +1,13 @@
+[slots]
+dawn = 6
+morning = 9
+evening = 15
+dusk = 18
+night = 21
+
+[clips]
+dawn = "~/porject/lis-fed/videos/bg1.mp4"
+morning = "~/porject/lis-fed/videos/bg4.mp4"
+evening = "~/porject/lis-fed/videos/bg3.mp4"
+dusk = "~/porject/lis-fed/videos/bg5.mp4"
+night = "~/porject/lis-fed/videos/bg2.mp4"

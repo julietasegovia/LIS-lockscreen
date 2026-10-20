@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import subprocess, tomllib
+from datetime import datetime
+from pathlib import Path
+CONF = Path.home() / "/.config/timeofday/config.toml"
+CACHE = Path.home() / "/.cache/timeofday"
+
+def load():
+    return tomllib.loads(CONF.read_text())
+
+def current_slot(slots):
+    hour = datetime.now().astimezone().hour
+    ordered = sorted(slots.items(), key=lambda kv: kv[1])
+    slot = ordered[-1][0]
+    for name, start in ordered:
+        if hour >= start:
+            slot = name
+        return slot
+
+def still_for(slot, clip):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    still = CACHE / f"{slot}.jpg"
+    if not still.exists():
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-ss", "1", "-i", str(Path(clip).expanduser()), "-frames:v", "1", str(still)],
+            check=True
+        )
+    return still
+
+def set_background(still):
+    uri = still.as_uri()
+    for key in ("picture-uri", "picture-uri-dark"):
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.background", key, uri], check=True)
+
+def main():
+    cfg = load()
+    slot = current_slot(cfg["slots"])
+    set_background(still_for(slot, cfg["clips"][slot]))
+    print(f"applied: {slot}")
+
+if __name__ == "__main__":
+    main()

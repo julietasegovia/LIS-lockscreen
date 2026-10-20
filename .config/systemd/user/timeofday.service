@@ -1,0 +1,6 @@
+[Unit]
+Description=Apply time-of-day wallpaper
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/timeofday
