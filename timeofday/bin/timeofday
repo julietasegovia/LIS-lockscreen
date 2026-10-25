@@ -5,6 +5,7 @@ from pathlib import Path
 
 CONF   = Path.home() / ".config/timeofday/config.toml"
 CACHE  = Path.home() / ".cache/timeofday"
+ROOT   = Path(__file__).resolve().parents[2]
 EXT_ID = "live-lockpaper@DeLuca21"
 SCHEMA = "org.gnome.shell.extensions.live-lockpaper-deluca21"
 EXT_DIRS = [
@@ -24,13 +25,26 @@ def current_slot(slots):
             slot = name
     return slot
 
+def clip_path(clip):
+    """Resolve a clip independent of the process working directory.
+
+    Relative paths are taken from the project root. systemd runs this from
+    $HOME, so a cwd-relative resolve would point at ~/videos instead of the
+    clips in this repo.
+    """
+    path = Path(clip).expanduser()
+    if not path.is_absolute():
+        path = ROOT / path
+    return path.resolve()
+
+
 def still_for(slot, clip):
     CACHE.mkdir(parents=True, exist_ok=True)
     still = CACHE / f"{slot}.jpg"
     if not still.exists():
         subprocess.run(
             ["ffmpeg", "-y", "-loglevel", "error", "-ss", "1",
-             "-i", str(Path(clip).expanduser()), "-frames:v", "1", str(still)],
+             "-i", str(clip_path(clip)), "-frames:v", "1", str(still)],
             check=True)
     return still
 
@@ -68,7 +82,7 @@ def set_video(clip):
     if sd is None:
         print("LiveLockPaper not found; still image only")
         return
-    clip = str(Path(clip).expanduser().resolve())
+    clip = str(clip_path(clip))
     changed = False
 
     try:
